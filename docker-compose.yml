@@ -1,0 +1,28 @@
+name: bridged-stack
+  networks:
+    pihole_network:
+      external: true
+      name: pihole_direct
+    ## create this network with :-
+    ## podman network create -d macvlan -o parent=br0 -o mode=bridge \
+    ##  --subnet 192.168.1.0/24 --gateway 192.168.1.254 pihole_direct
+
+  services:
+    pihole:
+      image: pihole/pihole:latest
+      container_name: pihole
+      hostname: pihole
+      cap_add:
+        - NET_ADMIN
+        - NET_RAW  # Added: Often needed for v6 DHCP/ICMP
+      networks:
+        pihole_network:
+          ipv4_address: 192.168.1.253
+      # Explicitly set DNS so the container can reach GitHub during setup
+      dns:
+        - 192.168.1.254
+      environment:
+        TZ: "Europe/London"
+        PIHOLE_UID: 0
+        PIHOLE_GID: 0
+        FTLCONF_webserver_port: '8045,8445'
